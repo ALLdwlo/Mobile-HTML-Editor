@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Code Editor</title>
+    
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.css">
+    
+    <!-- CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    
+    <!-- Language Modes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+    
+    <!-- Addons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchtags.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/comment-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/html-lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/css-lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/lint/javascript-lint.min.js"></script>
+    
+    <!-- HTMLHint and CSSLint for validation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmlhint/1.1.4/htmlhint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/csslint/1.0.5/csslint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.13.6/jshint.min.js"></script>
+    
+    <!-- Prettier for code formatting -->
+    <script src="https://cdn.jsdelivr.net/npm/prettier@2.8.8/standalone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prettier@2.8.8/parser-html.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prettier@2.8.8/parser-babel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prettier@2.8.8/parser-postcss.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        #editor-container {
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        .CodeMirror {
+            height: 100%;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+        
+        .CodeMirror-linenumber {
+            padding: 0 8px;
+        }
+        
+        .CodeMirror-gutters {
+            border-right: 1px solid #ddd;
+        }
+        
+        .CodeMirror-foldgutter {
+            width: 16px;
+        }
+        
+        .CodeMirror-lint-mark-error {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 3 L3 0 L6 3 Z' fill='%23e53935'/%3E%3C/svg%3E");
+            background-position: left bottom;
+            background-repeat: repeat-x;
+        }
+        
+        .CodeMirror-lint-mark-warning {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 3 L3 0 L6 3 Z' fill='%23ff9800'/%3E%3C/svg%3E");
+            background-position: left bottom;
+            background-repeat: repeat-x;
+        }
+    </style>
+</head>
+<body>
+    <div id="editor-container"></div>
+    
+    <script>
+        let editor;
+        let contentChangeTimeout;
+        let validationTimeout;
+        const CONTENT_DEBOUNCE_MS = 300;
+        const VALIDATION_DEBOUNCE_MS = 500;
+        
+        function initEditor() {
+            editor = CodeMirror(document.getElementById('editor-container'), {
+                mode: 'htmlmixed',
+                theme: 'default',
+                lineNumbers: true,
+                lineWrapping: true,
+                indentUnit: 2,
+                indentWithTabs: false,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                autoCloseTags: true,
+                matchTags: { bothTags: true },
+                styleActiveLine: true,
+                foldGutter: true,
+                gutters: [
+                    'CodeMirror-linenumbers',
+                    'CodeMirror-foldgutter',
+                    'CodeMirror-lint-markers'
+                ],
+                lint: {
+                    delay: VALIDATION_DEBOUNCE_MS,
+                    getAnnotations: customLintFunction
+                },
+                extraKeys: {
+                    'Ctrl-Z': function(cm) { 
+                        cm.undo(); 
+                        notifyUndoRedoState();
+                    },
+                    'Cmd-Z': function(cm) { 
+                        cm.undo(); 
+                        notifyUndoRedoState();
+                    },
+                    'Ctrl-Y': function(cm) { 
+                        cm.redo(); 
+                        notifyUndoRedoState();
+                    },
+                    'Cmd-Shift-Z': function(cm) { 
+                        cm.redo(); 
+                        notifyUndoRedoState();
+                    },
+                    'Ctrl-Shift-Z': function(cm) { 
+                        cm.redo(); 
+                        notifyUndoRedoState();
+                    }
+                }
+            });
+            
+            editor.on('change', function(cm) {
+                clearTimeout(contentChangeTimeout);
+                contentChangeTimeout = setTimeout(function() {
+                    notifyContentChanged(cm.getValue());
+                    notifyUndoRedoState();
+                }, CONTENT_DEBOUNCE_MS);
+            });
+            
+            editor.on('cursorActivity', function(cm) {
+                notifyCursorPosition(cm);
+            });
+            
+            notifyEditorReady();
+        }
+        
+        function customLintFunction(text, callback, options, cm) {
+            const mode = cm.getOption('mode');
+            const found = [];
+            
+            try {
+                if (mode === 'htmlmixed' || mode === 'text/html') {
+                    if (typeof HTMLHint !== 'undefined') {
+                        const messages = HTMLHint.verify(text, {
+                            'tagname-lowercase': true,
+                            'attr-lowercase': true,
+                            'attr-value-double-quotes': true,
+                            'tag-pair': true,
+                            'spec-char-escape': true,
+                            'id-unique': true,
+                            'src-not-empty': true,
+                            'attr-no-duplication': true
+                        });
+                        
+                        messages.forEach(function(message) {
+                            found.push({
+                                from: CodeMirror.Pos(message.line - 1, message.col - 1),
+                                to: CodeMirror.Pos(message.line - 1, message.col),
+                                message: message.message,
+                                severity: message.type
+                            });
+                        });
+                    }
+                } else if (mode === 'css' || mode === 'text/css') {
+                    if (typeof CSSLint !== 'undefined') {
+                        const result = CSSLint.verify(text);
+                        result.messages.forEach(function(message) {
+                            if (message.line && message.col) {
+                                found.push({
+                                    from: CodeMirror.Pos(message.line - 1, message.col - 1),
+                                    to: CodeMirror.Pos(message.line - 1, message.col),
+                                    message: message.message,
+                                    severity: message.type
+                                });
+                            }
+                        });
+                    }
+                } else if (mode === 'javascript' || mode === 'text/javascript') {
+                    if (typeof JSHINT !== 'undefined') {
+                        JSHINT(text, {
+                            esversion: 6,
+                            asi: true,
+                            boss: true,
+                            loopfunc: true,
+                            expr: true
+                        });
+                        
+                        if (JSHINT.errors) {
+                            JSHINT.errors.forEach(function(error) {
+                                if (error && error.line) {
+                                    found.push({
+                                        from: CodeMirror.Pos(error.line - 1, error.character - 1),
+                                        to: CodeMirror.Pos(error.line - 1, error.character),
+                                        message: error.reason,
+                                        severity: 'warning'
+                                    });
+                                }
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Lint error:', e);
+            }
+            
+            callback(found);
+            notifyValidationComplete(found);
+        }
+        
+        function setContent(content) {
+            if (editor) {
+                editor.setValue(content || '');
+            }
+        }
+        
+        function getContent() {
+            return editor ? editor.getValue() : '';
+        }
+        
+        function setLanguage(lang) {
+            if (!editor) return;
+            
+            const modeMap = {
+                'html': 'htmlmixed',
+                'css': 'css',
+                'javascript': 'javascript',
+                'js': 'javascript',
+                'php': 'php'
+            };
+            
+            const mode = modeMap[lang.toLowerCase()] || 'htmlmixed';
+            editor.setOption('mode', mode);
+        }
+        
+        function setTheme(theme) {
+            if (editor) {
+                editor.setOption('theme', theme);
+            }
+        }
+        
+        function setFontSize(size) {
+            if (editor) {
+                const cm = document.querySelector('.CodeMirror');
+                if (cm) {
+                    cm.style.fontSize = size + 'px';
+                    editor.refresh();
+                }
+            }
+        }
+        
+        function setCursorPosition(line, ch) {
+            if (editor) {
+                editor.setCursor({ line: line, ch: ch });
+                editor.focus();
+            }
+        }
+        
+        function getCursorPosition() {
+            if (editor) {
+                const cursor = editor.getCursor();
+                return JSON.stringify({ line: cursor.line, ch: cursor.ch });
+            }
+            return JSON.stringify({ line: 0, ch: 0 });
+        }
+        
+        function undo() {
+            if (editor) {
+                editor.undo();
+                notifyUndoRedoState();
+            }
+        }
+        
+        function redo() {
+            if (editor) {
+                editor.redo();
+                notifyUndoRedoState();
+            }
+        }
+        
+        function canUndo() {
+            return editor ? editor.historySize().undo > 0 : false;
+        }
+        
+        function canRedo() {
+            return editor ? editor.historySize().redo > 0 : false;
+        }
+        
+        function formatCode() {
+            if (!editor) return false;
+            
+            try {
+                const content = editor.getValue();
+                const mode = editor.getOption('mode');
+                let formatted;
+                
+                if (mode === 'htmlmixed' || mode === 'text/html') {
+                    formatted = prettier.format(content, {
+                        parser: 'html',
+                        plugins: prettierPlugins,
+                        htmlWhitespaceSensitivity: 'ignore',
+                        tabWidth: 2,
+                        useTabs: false,
+                        printWidth: 80
+                    });
+                } else if (mode === 'css' || mode === 'text/css') {
+                    formatted = prettier.format(content, {
+                        parser: 'css',
+                        plugins: prettierPlugins,
+                        tabWidth: 2,
+                        useTabs: false
+                    });
+                } else if (mode === 'javascript' || mode === 'text/javascript') {
+                    formatted = prettier.format(content, {
+                        parser: 'babel',
+                        plugins: prettierPlugins,
+                        tabWidth: 2,
+                        useTabs: false,
+                        semi: true,
+                        singleQuote: true
+                    });
+                } else {
+                    return false;
+                }
+                
+                const cursor = editor.getCursor();
+                editor.setValue(formatted);
+                editor.setCursor(cursor);
+                notifyFormatComplete(true);
+                return true;
+            } catch (e) {
+                console.error('Format error:', e);
+                notifyFormatComplete(false);
+                return false;
+            }
+        }
+        
+        function notifyEditorReady() {
+            if (typeof AndroidInterface !== 'undefined') {
+                AndroidInterface.onEditorReady();
+            }
+        }
+        
+        function notifyContentChanged(content) {
+            if (typeof AndroidInterface !== 'undefined') {
+                AndroidInterface.onContentChanged(content);
+            }
+        }
+        
+        function notifyCursorPosition(cm) {
+            if (typeof AndroidInterface !== 'undefined') {
+                const cursor = cm.getCursor();
+                AndroidInterface.onCursorPositionChanged(cursor.line, cursor.ch);
+            }
+        }
+        
+        function notifyUndoRedoState() {
+            if (typeof AndroidInterface !== 'undefined') {
+                AndroidInterface.onUndoRedoStateChanged(canUndo(), canRedo());
+            }
+        }
+        
+        function notifyValidationComplete(errors) {
+            if (typeof AndroidInterface !== 'undefined') {
+                AndroidInterface.onValidationComplete(JSON.stringify(errors));
+            }
+        }
+        
+        function notifyFormatComplete(success) {
+            if (typeof AndroidInterface !== 'undefined') {
+                AndroidInterface.onFormatComplete(success);
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initEditor);
+        } else {
+            initEditor();
+        }
+    </script>
+</body>
+</html>
